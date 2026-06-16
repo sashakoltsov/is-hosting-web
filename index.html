@@ -346,7 +346,7 @@
     transition:height .62s cubic-bezier(.4,0,.2,1),top .62s cubic-bezier(.4,0,.2,1)}
   .cnav-fill{position:absolute;top:0;left:0;width:100%;border-radius:4px;
     background:var(--slate);height:0;transition:height .1s linear}
-  #cnav-full{position:absolute;top:0;left:0;width:288px;padding:12px;
+  #cnav-full{position:absolute;top:0;left:0;width:min(288px,calc(100vw - 44px));padding:12px;
     display:flex;flex-direction:column;gap:4px;
     opacity:0;pointer-events:none;transition:opacity .22s ease}
   #cnav.open #cnav-full{opacity:1;pointer-events:auto}
@@ -360,6 +360,80 @@
   .cnav-thumb svg{height:31px;width:auto;display:block}
   .cnav-label{font-family:'Poppins',sans-serif;font-weight:600;font-size:13.5px;
     letter-spacing:-.01em;color:var(--slate);line-height:1.15}
+
+  /* ============================================================
+     MOBILE  — the desktop layout is built for a wide viewport;
+     these rules re-flow it for narrow portrait screens.
+     ============================================================ */
+  @media(max-width:860px){
+    /* territory leader-lines are positioned by JS using the desktop
+       globe geometry — they float over the text once the globe
+       reflows, so hide them on smaller screens */
+    #terr-callouts{display:none}
+  }
+
+  @media(max-width:760px){
+    .wrap{padding:0 20px}
+    .section-pad{padding:74px 0}
+    h2.sec{font-size:clamp(28px,7.6vw,40px)}
+    .lead{font-size:15.5px}
+
+    /* ---------- HEADER ---------- */
+    header{padding:13px 18px}
+    header .brand svg{height:30px}
+    header .btn-flip{height:36px;padding:0 16px;font-size:12px}
+    header .btn-flip .flip-inner,
+    header .btn-flip .flip-face{height:36px}
+
+    /* ---------- HERO ---------- */
+    /* keep the morph animation; just give the cube room and stop
+       the awards columns from flanking (and colliding with) it */
+    #globe-hero{width:min(150vw,620px);height:min(150vw,620px)}
+
+    .hero-foot{top:auto;bottom:8.5vh}
+    .hero-ctas{gap:10px}
+    .hero-ctas .btn{font-size:12px;padding:10px 18px}
+    .trust{font-size:12px}
+
+    /* awards → centred 2×2 cluster near the top, clear of the cube */
+    #hero-awards{display:flex;flex-direction:column;align-items:center;
+      justify-content:flex-start;padding-top:12vh;gap:14px}
+    .aw-col.l,.aw-col.r{position:static;left:auto;right:auto;top:auto;
+      transform:none;flex-direction:row;gap:22px}
+    .laurel{width:18px;height:38px}
+    .aw-mid{min-width:0}
+    .aw-title{font-size:8px}
+    .aw-val{font-size:13px}
+
+    /* data tiles → keep the row of three, shrink so they fit cleanly */
+    #hero-tiles{width:94vw;gap:8px;bottom:5vh}
+    .htile{height:19vh;padding:14px;border-radius:8px}
+    .htile-over{font-size:9px;letter-spacing:.08em}
+    .htile-num{font-size:clamp(34px,12vw,58px)}
+    .htile-lbl{font-size:10.5px;margin-top:2px}
+
+    /* ---------- TERRITORY ---------- */
+    .terr-stats{grid-template-columns:1fr 1fr;gap:16px 22px;margin-top:26px}
+
+    /* ---------- CARDS / PANELS ---------- */
+    .card{padding:24px}
+    .half{padding:26px}
+    .prod-head{margin-bottom:32px}
+
+    /* ---------- FOOTER MASCOT ---------- */
+    /* desktop flanks the dog with copy via absolute positioning,
+       which runs off a narrow screen — stack it instead */
+    .foot-dog{margin-top:6px;padding:0 20px;text-align:center}
+    .dog-wrap{display:flex;flex-direction:column;align-items:center}
+    .foot-dog img{height:168px;transform:none}
+    .dog-copy{position:static;right:auto;left:auto;bottom:auto;
+      white-space:normal;font-size:20px;line-height:1.1}
+    .dog-copy.l{margin-bottom:6px}
+    .dog-copy.r{margin-top:6px}
+
+    /* ---------- CHAPTER NAV ---------- */
+    #cnav{right:14px}
+  }
 </style>
 </head>
 <body>
@@ -940,6 +1014,9 @@ function updateHero(){
   // awards screen first (cube settled, no tiles) ...
   heroAwards.classList.toggle('show', p>=0.60);
   heroAwards.style.transform=`translateY(${(-liftVh).toFixed(2)}vh)`;
+  // on mobile the awards stack centred rather than flanking the cube, so fade
+  // them out as the tiles slide in to avoid the two clusters colliding
+  heroAwards.style.opacity = window.innerWidth<=760 ? (1-tilesIn).toFixed(3) : '';
   // ... then the tiles slide in from below
   heroTiles.classList.toggle('show', p>=0.78);
 }
@@ -1107,7 +1184,7 @@ refreshHero();
   });
   let openState=false,expandedH=0;
   function setCollapsed(){panel.style.width=WMINI+'px';panel.style.height=collapsedH+'px';panel.style.borderRadius='15px';}
-  function setExpanded(){panel.style.width='288px';panel.style.height=expandedH+'px';panel.style.borderRadius='20px';}
+  function setExpanded(){panel.style.width=Math.min(288,window.innerWidth-44)+'px';panel.style.height=expandedH+'px';panel.style.borderRadius='20px';}
   setCollapsed();
   function openPanel(){if(openState)return;openState=true;cnav.classList.add('open');cnav.classList.remove('cnav-off');expandedH=full.scrollHeight;setExpanded();}
   function closePanel(){if(!openState)return;openState=false;cnav.classList.remove('open');setCollapsed();}
